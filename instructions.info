@@ -1,0 +1,52 @@
+# "Dockerfile" has instructions to Docker to set up the environment to run the apply
+
+# Build the docker image
+docker image build -t lalama1982/node-docker-k8s:1.0 .
+
+# Check the image status
+docker image ls
+
+# Pushing the image to Docker Repository(cloud) so K8s could import this as an image
+docker image push lalama1982/node-docker-k8s:1.0
+
+# Changes the "web-deploy.yml"
+# - add the image name, similar to one used during the build
+# ---------------------------------------------
+    spec:
+      containers:
+      - image: lalama1982/node-docker-k8s:1.0
+        name: web-ctr
+        ports:
+        - containerPort: 8080
+# ---------------------------------------------
+
+# Deploy the image to K8s
+kubectl apply -f .\web-deploy.yml
+
+# Pods : kubectl get pods
+NAME                          READY   STATUS    RESTARTS   AGE
+simple-web-64c4674c67-62rvt   1/1     Running   0          20m
+simple-web-64c4674c67-njz7h   1/1     Running   0          20m
+simple-web-64c4674c67-tgxqb   1/1     Running   0          20m
+
+# Apply the Service/Nodeport to access internally
+kubectl apply -f .\web-nodeport.yml
+## Check in browser : http://localhost:31000/
+   - Nodeport : 31000 (calling / internal)
+   - port : 8080
+
+# Apply the Service/Load Balancer to access externally
+kubectl apply -f .\web-lb.yml
+## Check in browser : http://localhost:80/
+   - port : 80 (calling / external)
+   - target port : 8080
+
+# Services : kubectl get Service
+NAME               TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+kubernetes         ClusterIP      10.96.0.1      <none>        443/TCP          21h
+web-loadbalancer   LoadBalancer   10.97.37.201   localhost     80:31832/TCP     4s 
+web-nodeport       NodePort       10.98.69.19    <none>        8080:31000/TCP   16m
+
+(#) http://localhost:31572/ does not work
+
+
