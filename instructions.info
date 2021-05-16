@@ -49,4 +49,6 @@ web-nodeport       NodePort       10.98.69.19    <none>        8080:31000/TCP   
 
 (#) http://localhost:31572/ does not work
 
+# "github" repo : Kubernetes_Stuff-NodeJS_Docker_K8s
+
 
